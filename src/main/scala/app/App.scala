@@ -5,6 +5,6 @@ import org.scalajs.dom.document
 
 object App extends JSApp {
   def main(): Unit = {
-    TreeView().renderIntoDOM(document.getElementById("root"))
+    TreeView.root.renderIntoDOM(document.getElementById("root"))
   }
 }

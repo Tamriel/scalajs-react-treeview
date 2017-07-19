@@ -3,45 +3,43 @@ package app
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
 
-case class Node(text: String, children: Vector[Node])
+case class Node(label: String, text: String, children: Vector[Node])
 
 object TreeView {
-  val childNode = Node("1.1", Vector())
-  val parentNode = Node("1", Vector(childNode))
+  val childNode = Node("1.1", "", Vector.empty)
+  val parentNode = Node("1", "", Vector(childNode))
 
-  val rootNode = ScalaComponent
-    .builder[Unit]("Node")
-    .initialState(parentNode)
+  val NodeComponent = ScalaComponent
+    .builder[Node]("Node")
+    .initialStateFromProps(identity)
     .renderBackend[NodeBackend]
     .build
 
-  class NodeBackend($ : BackendScope[Unit, Node]) {
+  class NodeBackend($ : BackendScope[Node, Node]) {
 
     def addChild =
-      $.modState(
-        _.copy(children = $.state.runNow().children :+ Node("1.2", Vector())))
+      $.modState(s =>
+        s.copy(children = s.children :+ Node("1.2", "", Vector.empty)))
+
+    val onTextChange: ReactEventFromInput => Callback =
+      _.extract(_.target.value)(t => $.modState(_.copy(text = t)))
 
     def render(node: Node): VdomElement = {
       val children =
-        if (node.children.nonEmpty)
-          node.children.toVdomArray(child => {
-            val childNode = ScalaComponent
-              .builder[Unit]("Node")
-              .initialState(child)
-              .renderBackend[NodeBackend]
-              .build
-            childNode.withKey(child.text)()
-          })
-        else EmptyVdom
+        node.children.toVdomArray(child =>
+          NodeComponent.withKey(child.label)(child))
+
+      val input =
+        <.input.text(^.value := node.text, ^.onChange ==> onTextChange)
 
       <.div(
-        node.text,
-        <.input(),
+        node.label,
+        input,
         <.button("Add child", ^.onClick --> addChild),
         children
       )
     }
   }
 
-  def apply() = rootNode()
+  def root = NodeComponent(parentNode)
 }
