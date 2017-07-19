@@ -15,10 +15,15 @@ object TreeView {
     .build
 
   class NodeBackend($ : BackendScope[Node, Unit]) {
-    def render(node: Node) = {
+
+    def render(node: Node): VdomElement = {
+      val child =
+        if (node.children.isEmpty) EmptyVdom
+        else nodeComponent(node.children(0))()
+
       <.div(
-        <.div(node.text)
-//        ,nodeComponent(node.children(0)).when(node.children.nonEmpty)
+        <.div(node.text),
+        child
       )
     }
   }
