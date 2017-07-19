@@ -3,11 +3,11 @@ package app
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
 
-case class Node(text: String, children: Vector[Node])
+case class Node(text: Int, children: Vector[Node])
 
 object TreeView {
-  val childNode = Node("1.1", Vector())
-  val parentNode = Node("1", Vector(childNode))
+  val childNode = Node(2, Vector())
+  val parentNode = Node(1, Vector(childNode))
 
   val nodeComponent = ScalaComponent
     .builder[Node]("Node")
@@ -17,13 +17,17 @@ object TreeView {
   class NodeBackend($ : BackendScope[Node, Unit]) {
 
     def render(node: Node): VdomElement = {
-      val child =
-        if (node.children.isEmpty) EmptyVdom
-        else nodeComponent(node.children(0))()
+      val children =
+        if (node.children.nonEmpty)
+          node.children.toVdomArray(child =>
+            nodeComponent.withKey(child.text)(child))
+        else EmptyVdom
 
       <.div(
-        <.div(node.text),
-        child
+        node.text,
+        <.input(),
+        <.button("+1"),
+        children
       )
     }
   }
