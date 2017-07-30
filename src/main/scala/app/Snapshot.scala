@@ -1,42 +1,55 @@
-package app
-
-import japgolly.scalajs.react._
-import japgolly.scalajs.react.vdom.html_<^._
-import japgolly.scalajs.react.extra
-import japgolly.scalajs.react.extra.StateSnapshot
-import MonocleReact._
-import monocle.macros._
-
-object Snapshot {
-
-  @Lenses
-  case class Name(firstName: String, surname: String)
-
-  val NameChanger = ScalaComponent
-    .builder[StateSnapshot[String]]("Name changer")
-    .render_P { stateSnapshot =>
-      <.input.text(^.value := stateSnapshot.value,
-                   ^.onChange ==> ((e: ReactEventFromInput) =>
-                     stateSnapshot.setState(e.target.value)))
-    }
-    .configure(extra.LogLifecycle.default)
-    .build
-
-  val Main = ScalaComponent
-    .builder[Unit]("StateSnapshot example")
-    .initialState(Name("John", "Wick"))
-    .render { $ =>
-      val name = $.state
-      val firstNameV = StateSnapshot.zoomL(Name.firstName).of($)
-      val surnameV = StateSnapshot.zoomL(Name.surname).of($)
-      <.div(
-        <.label("First name:", NameChanger(firstNameV)),
-        <.label("Surname:", NameChanger(surnameV)),
-        <.p(s"My name is ${name.surname}, ${name.firstName} ${name.surname}.")
-      )
-    }
-    .configure(extra.LogLifecycle.default)
-    .build
-
-  def root = Main()
-}
+//package app
+//
+//import japgolly.scalajs.react._
+//import japgolly.scalajs.react.MonocleReact._
+//import japgolly.scalajs.react.{extra, _}
+//import japgolly.scalajs.react.extra.StateSnapshot
+//import japgolly.scalajs.react.vdom.html_<^._
+//import monocle.macros._
+//
+//object TreeView {
+//
+//  @Lenses
+//  case class Node(id: String, text: String, children: Vector[Node])
+//
+//  val childNode = Node("1.1", "", Vector.empty)
+//  val parentNode = Node("1", "", Vector(childNode))
+//
+//  val NodeComponent = ScalaComponent
+//    .builder[Node]("Node")
+//    .initialState(Node("1.1", "", Vector.empty))
+//    .renderBackend[NodeBackend]
+//    .build
+//
+//  class NodeBackend($ : BackendScope[Node, Node]) {
+//
+//    def addChild =
+//      $.modState(s =>
+//        s.copy(children = s.children :+ Node("1.2", "", Vector.empty)))
+//
+//    val onTextChange: ReactEventFromInput => Callback =
+//      _.extract(_.target.value)(t => $.modState(_.copy(text = t)))
+//
+//    def render(state: Node): VdomElement = {
+//      val name = $.state
+//
+//      val text = StateSnapshot.zoomL(Node.text).of(state)
+//
+//      val children =
+//        state.children.toVdomArray(child =>
+//          NodeComponent.withKey(child.id)(child))
+//
+//      val input =
+//        <.input.text(^.value := text, ^.onChange ==> onTextChange)
+//
+//      <.div(
+//        state.id,
+//        input,
+//        <.button("Add child", ^.onClick --> addChild),
+//        children
+//      )
+//    }
+//  }
+//
+//  def root = NodeComponent(parentNode)
+//}
