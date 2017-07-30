@@ -32,37 +32,41 @@ object NameChanger {
 
   case class Store(nodes: Map[String, Node])
 
-//  case class Props(storeSnap: StateSnapshot[Option[Node]])
-
+  case class Props(storeSnap: StateSnapshot[Store], nodeId: String)
 
   val NodeComponent = ScalaComponent
-    .builder[StateSnapshot[Option[Node]]]("Node")
+    .builder[Props]("Node")
     .renderBackend[NodeBackend]
     .configure(extra.LogLifecycle.default)
     .build
 
-  class NodeBackend($ : BackendScope[StateSnapshot[Option[Node]], Unit]) {
+  class NodeBackend($ : BackendScope[Props, Unit]) {
 
-    def render(stateSnapshot: StateSnapshot[Option[Node]]) = {
+    def render(props: Props) : VdomElement = {
       def a = {
-        val s = stateSnapshot.value.get
-        stateSnapshot.setState(Option(s.copy(text = "Neu")))
+//        val s = stateSnapshot.value.get
+//        stateSnapshot.setState(Option(s.copy(text = "Neu")))
+        val newL = props.storeSnap.value.nodes + ("1" -> props.storeSnap.value.nodes("1")
+          .copy(text = "neuer Text"))
+        props.storeSnap.setState(props.storeSnap.value.copy(nodes = newL))
+
       }
 
-      //      val nodesLens = GenLens[Store](_.nodes)
+      val node = props.storeSnap.value.nodes(props.nodeId)
+
+      val nodesLens = GenLens[Store](_.nodes)
       //      stateSnapshot.value.get.childrenIds
-      //      val children =
-      //        store.nodes.toVdomArray(node => {
-      //          val childLens = nodesLens composeLens at(node)
-      //          val childAt = StateSnapshot.zoomL(childLens).of($)
-      //          <.label("Child:", NodeComponent(childAt))
-      //        })
+      val children =
+        node.childrenIds.toVdomArray(childId => {
+          NodeComponent.withKey(childId)(Props(props.storeSnap, childId))
+        })
 
       <.div(
         <.input.text(
-          ^.value := stateSnapshot.value.get.text,
+          ^.value := node.text,
           ^.onChange ==> ((e: ReactEventFromInput) => a)
-        )
+        ),
+        children
       )
     }
   }
@@ -118,7 +122,7 @@ object NameChanger {
         val nodesLens = GenLens[Store](_.nodes)
         val childLens = nodesLens composeLens at("0")
         val childAt = StateSnapshot.zoomL(childLens).of($)
-        NodeComponent(childAt)
+        NodeComponent.withKey("0")(Props(StateSnapshot.of($), "0"))
       }
 
       <.div(
