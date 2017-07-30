@@ -7,23 +7,23 @@ import japgolly.scalajs.react.vdom.html_<^._
 import monocle.Lens
 import monocle.macros._
 import monocle.syntax._
-import monocle.function.all._ // to get each and other typeclass based optics such as at or headOption
+import monocle.function.all._
 import monocle.Traversal
 import monocle.macros.GenLens
-import monocle.function.At.at // to get at Lens
-import monocle.std.map._ // to get Map instance for At
+import monocle.function.At.at
+import monocle.std.map._
 import monocle.Lens
 import monocle.macros._
 import monocle.syntax._
-import monocle.function.all._ // to get each and other typeclass based optics such as at or headOption
+import monocle.function.all._
 import monocle.Traversal
 import monocle.macros.GenLens
-import monocle.function.At.at // to get at Lens
-import monocle.std.map._ // to get Map instance for At
-import monocle.macros.GenLens // require monocle-macro module
-import monocle.function.all._ // to get each and other typeclass based optics such as at or headOption
+import monocle.function.At.at
+import monocle.std.map._
+import monocle.macros.GenLens
+import monocle.function.all._
 import monocle.Traversal
-import monocle.function.At.at // to get at Lens
+import monocle.function.At.at
 import monocle.std.map._ // to get Map instance for At
 
 object NameChanger {
@@ -32,33 +32,68 @@ object NameChanger {
 
   case class Store(nodes: Map[String, Node])
 
+//  case class Props(storeSnap: StateSnapshot[Option[Node]])
+
+
   val NodeComponent = ScalaComponent
-    .builder[StateSnapshot[Option[Node]]]("Name changer")
-    .render_P { stateSnapshot =>
+    .builder[StateSnapshot[Option[Node]]]("Node")
+    .renderBackend[NodeBackend]
+    .configure(extra.LogLifecycle.default)
+    .build
+
+  class NodeBackend($ : BackendScope[StateSnapshot[Option[Node]], Unit]) {
+
+    def render(stateSnapshot: StateSnapshot[Option[Node]]) = {
       def a = {
         val s = stateSnapshot.value.get
         stateSnapshot.setState(Option(s.copy(text = "Neu")))
       }
 
-      val nodesLens = GenLens[Store](_.nodes)
-      stateSnapshot.value.get.childrenIds
-      val children =
-        store.nodes.toVdomArray(node => {
-          val childLens = nodesLens composeLens at(node)
-          val childAt = StateSnapshot.zoomL(childLens).of($)
-          <.label("Child:", NodeComponent(childAt))
-        })
+      //      val nodesLens = GenLens[Store](_.nodes)
+      //      stateSnapshot.value.get.childrenIds
+      //      val children =
+      //        store.nodes.toVdomArray(node => {
+      //          val childLens = nodesLens composeLens at(node)
+      //          val childAt = StateSnapshot.zoomL(childLens).of($)
+      //          <.label("Child:", NodeComponent(childAt))
+      //        })
 
       <.div(
         <.input.text(
           ^.value := stateSnapshot.value.get.text,
           ^.onChange ==> ((e: ReactEventFromInput) => a)
-        ),
-        children
+        )
       )
     }
-    .configure(extra.LogLifecycle.default)
-    .build
+  }
+
+//  val NodeComponent = ScalaComponent
+//    .builder[StateSnapshot[Option[Node]]]("Name changer")
+//    .render_P { stateSnapshot =>
+//      def a = {
+//        val s = stateSnapshot.value.get
+//        stateSnapshot.setState(Option(s.copy(text = "Neu")))
+//      }
+//
+////      val nodesLens = GenLens[Store](_.nodes)
+////      stateSnapshot.value.get.childrenIds
+////      val children =
+////        store.nodes.toVdomArray(node => {
+////          val childLens = nodesLens composeLens at(node)
+////          val childAt = StateSnapshot.zoomL(childLens).of($)
+////          <.label("Child:", NodeComponent(childAt))
+////        })
+//
+//      <.div(
+//        <.input.text(
+//          ^.value := stateSnapshot.value.get.text,
+//          ^.onChange ==> ((e: ReactEventFromInput) => a)
+//        )
+//
+//      )
+//    }
+//    .configure(extra.LogLifecycle.default)
+//    .build
 
   val childNode = Node("1", "child", Vector.empty)
   val parentNode = Node("0", "root", Vector("1"))
@@ -71,7 +106,12 @@ object NameChanger {
     .initialState(store)
     .render { $ =>
       def a = {
-        $.setState($.state.copy(nodes = $.state.nodes + ("2" -> newChildNode)))
+//        $.setState($.state.copy(nodes = $.state.nodes + ("2" -> newChildNode)))
+
+        val newL = $.state.nodes + ("0" -> $.state
+          .nodes("0")
+          .copy(text = "neuer Text"))
+        $.setState($.state.copy(nodes = newL))
       }
 
       val rootNode = {
