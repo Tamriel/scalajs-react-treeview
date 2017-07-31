@@ -47,7 +47,7 @@ object NameChanger {
 //        val s = stateSnapshot.value.get
 //        stateSnapshot.setState(Option(s.copy(text = "Neu")))
         val newL = props.storeSnap.value.nodes + ("1" -> props.storeSnap.value.nodes("1")
-          .copy(text = "neuer Text"))
+          .copy(childrenIds = Vector("2"), text = "neuer Text"))
         props.storeSnap.setState(props.storeSnap.value.copy(nodes = newL))
 
       }
@@ -110,12 +110,20 @@ object NameChanger {
     .initialState(store)
     .render { $ =>
       def a = {
-//        $.setState($.state.copy(nodes = $.state.nodes + ("2" -> newChildNode)))
+        $.setState($.state.copy(nodes = $.state.nodes + ("2" -> newChildNode)))
 
-        val newL = $.state.nodes + ("0" -> $.state
-          .nodes("0")
-          .copy(text = "neuer Text"))
-        $.setState($.state.copy(nodes = newL))
+//        val newNode = $.state
+//          .nodes("0")
+//          .copy(text = "neuer Text")
+//        val newNodes = $.state.nodes + ("0" -> newNode )
+//        $.setState($.state.copy(nodes = newNodes))
+
+
+//        val nodesLens = GenLens[Store](_.nodes)
+//        val childLens = nodesLens composeLens at("0")
+//        val childAt = StateSnapshot.zoomL(childLens).of($)
+//        $.modStateL(childLens.set())
+
       }
 
       val rootNode = {
